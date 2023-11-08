@@ -57,6 +57,8 @@ class TuyaLocalDevice(object):
             hass (HomeAssistant): The Home Assistant instance.
             poll_only (bool): True if the device should be polled only
         """
+        self.dev_id = dev_id
+        self.dev_cid = dev_cid
         self._name = name
         self._children = []
         self._force_dps = []
@@ -75,7 +77,6 @@ class TuyaLocalDevice(object):
                 )
             else:
                 self._api = tinytuya.Device(dev_id, address, local_key)
-            self.dev_cid = dev_cid
         except Exception as e:
             _LOGGER.error(
                 "%s: %s while initialising device %s",
@@ -128,9 +129,10 @@ class TuyaLocalDevice(object):
     def device_info(self):
         """Return the device information for this device."""
         return {
-            "identifiers": {(DOMAIN, self.unique_id)},
+            "identifiers": {(DOMAIN, self.unique_id), (DOMAIN, f'{self.dev_id}{self.dev_cid}')},
             "name": self.name,
             "manufacturer": "Tuya",
+            **({"via_device": {(DOMAIN, f'{self.dev_id}{self.dev_cid}')}} if self.dev_cid else {})
         }
 
     @property
